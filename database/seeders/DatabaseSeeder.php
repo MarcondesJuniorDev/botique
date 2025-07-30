@@ -28,10 +28,10 @@ class DatabaseSeeder extends Seeder
         Customer::factory(10)->create();
 
         // Criação de fornecedores
-        Supplier::factory(5)->create();
+        Supplier::factory(10)->create();
 
         // Criação de categorias
-        Category::factory(5)->create();
+        Category::factory(8)->create();
 
         // Criação de produtos
         Product::factory(20)->create();

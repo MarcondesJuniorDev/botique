@@ -11,39 +11,42 @@ class CategoryFactory extends Factory
 
     public function definition()
     {
-        return [
-            'name' => $this->faker->randomElement([
-                'Perfumaria',
-                'Maquiagem',
-                'Cuidados com a Pele',
-                'Higiene Pessoal',
-                'Cabelos',
-                'Unhas',
-                'Acessórios',
-                'Cuidados Corporais'
-            ]),
-            'description' => match ($this->faker->lastName) {
-                default => match ($name = $this->faker->randomElement([
-                    'Perfumaria',
-                    'Maquiagem',
-                    'Cuidados com a Pele',
-                    'Higiene Pessoal',
-                    'Cabelos',
-                    'Unhas',
-                    'Acessórios',
-                    'Cuidados Corporais'
-                ])) {
-                    'Perfumaria' => 'Produtos para perfumar e aromatizar.',
-                    'Maquiagem' => 'Itens para realçar a beleza facial.',
-                    'Cuidados com a Pele' => 'Produtos para manter a pele saudável.',
-                    'Higiene Pessoal' => 'Itens para higiene diária.',
-                    'Cabelos' => 'Produtos para cuidados capilares.',
-                    'Unhas' => 'Produtos para unhas bonitas e saudáveis.',
-                    'Acessórios' => 'Acessórios para complementar o visual.',
-                    'Cuidados Corporais' => 'Produtos para cuidados do corpo.',
-                    default => 'Categoria de produtos de beleza.',
-                }
-            },
+        $categories = [
+            [
+                "name" => "Perfumaria",
+                "description" => "Produtos para perfumar e aromatizar."
+            ],
+            [
+                "name" => "Maquiagem",
+                "description" => "Itens para realçar a beleza facial."
+            ],
+            [
+                "name" => "Cuidados com a Pele",
+                "description" => "Produtos para manter a pele saudável."
+            ],
+            [
+                "name" => "Higiene Pessoal",
+                "description" => "Itens para higiene diária."
+            ],
+            [
+                "name" => "Cabelos",
+                "description" => "Produtos para cuidados capilares."
+            ],
+            [
+                "name" => "Unhas",
+                "description" => "Produtos para unhas bonitas e saudáveis."
+            ],
+            [
+                "name" => "Acessórios",
+                "description" => "Acessórios para complementar o visual."
+            ],
+            [
+                "name" => "Cuidados Corporais",
+                "description" => "Produtos para cuidados do corpo."
+            ]
         ];
+
+        // Retorna um item aleatório do array de categorias
+        return $this->faker->unique()->randomElement($categories);
     }
 }
