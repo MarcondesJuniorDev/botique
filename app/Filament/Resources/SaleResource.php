@@ -2,16 +2,26 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SaleResource\Pages;
-use App\Filament\Resources\SaleResource\RelationManagers;
-use App\Models\Sale;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use App\Models\Sale;
 use Filament\Tables;
+use App\Models\Product;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\SaleResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\SaleResource\RelationManagers;
 
 class SaleResource extends Resource
 {
@@ -38,13 +48,6 @@ class SaleResource extends Resource
                     ->default(now())
                     ->required(),
 
-                Forms\Components\TextInput::make('total_amount')
-                    ->label('Valor Total')
-                    ->required()
-                    ->numeric()
-                    ->prefix('R$ ')
-                    ->default(0),
-
                 Forms\Components\Select::make('payment_method')
                     ->label('Método de Pagamento')
                     ->options([
@@ -55,6 +58,79 @@ class SaleResource extends Resource
                     ])
                     ->default('dinheiro')
                     ->required(),
+
+                Forms\Components\Repeater::make('items')
+                    ->label('Itens da Venda')
+                    ->relationship('items')
+                    ->schema([
+                        Forms\Components\Select::make('product_id')
+                            ->label('Produto')
+                            ->placeholder('Escolha um produto')
+                            ->relationship('product', 'name')
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                $product = \App\Models\Product::find($state);
+                                if ($product) {
+                                    $set('unit_price', $product->price);
+                                    $set('subtotal', $product->price * ($get('quantity') ?? 1));
+                                }
+                            }),
+
+                        Forms\Components\TextInput::make('quantity')
+                            ->label('Quantidade')
+                            ->required()
+                            ->numeric()
+                            ->reactive()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                                $price = $get('unit_price') ?? 0;
+                                if ($state > 0) {
+                                    $set('subtotal', $price * $state);
+                                }
+                            }),
+
+                        Forms\Components\TextInput::make('unit_price')
+                            ->label('Preço Unitário')
+                            ->numeric()
+                            ->readOnly()
+                            ->prefix('R$ '),
+
+                        Forms\Components\TextInput::make('subtotal')
+                            ->label('Subtotal')
+                            ->numeric()
+                            ->prefix('R$ ')
+                            ->readOnly(),
+
+                    ])
+                    ->columns(4)
+                    ->defaultItems(1)
+                    ->minItems(1)
+                    ->columnSpanFull()
+                    ->addAction(function (Get $get, Set $set) {
+                        $total_amount = collect($get('items'))->sum('subtotal');
+                        $set('total_amount', $total_amount);
+                    }),
+
+                Forms\Components\TextInput::make('total_amount')
+                    ->label('Total da Venda')
+                    ->numeric()
+                    ->prefix('R$ ')
+                    ->default(0)
+                    ->readOnly()
+                    ->dehydrated(true)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (Forms\Set $set, $state, Forms\Get $get) {
+                        $items = $get('items') ?? [];
+                        $total = collect($items)->sum('subtotal');
+                        $set('total_amount', $total);
+                    })
+                    ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                        $items = $get('items') ?? [];
+                        $total = collect($items)->sum('subtotal');
+                        $set('total_amount', $total);
+                    }),
+
 
                 Forms\Components\Textarea::make('notes')
                     ->label('Notas')
