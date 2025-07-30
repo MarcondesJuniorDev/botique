@@ -4,10 +4,11 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Filament\Panel;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
@@ -51,5 +52,10 @@ class User extends Authenticatable
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->hasPermissionTo('access_panel');
+    }
+
+    public function sessions()
+    {
+        return $this->hasMany(Session::class);
     }
 }
